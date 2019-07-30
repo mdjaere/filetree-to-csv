@@ -40,7 +40,7 @@ def walktree(top, callback):
             print('Skipping %s' % pathname)
 
 
-def stat_object_to_dictionary(stat_obj):
+def stat_to_dictionary(stat_obj):
     result = dict((field, getattr(stat_obj, field, None))
                   for field in fieldnames)
     return result
@@ -78,7 +78,7 @@ def get_type(stat_obj):
 
 
 def get_stat_dict(file_path, stat_obj):
-    stat_dict = stat_object_to_dictionary(stat_obj)
+    stat_dict = stat_to_dictionary(stat_obj)
     stat_dict["File_Name"] = os.path.basename(file_path)
     stat_dict["Full_Path"] = os.path.abspath(file_path)
     stat_dict["Date_Modified"] = get_human_mtime(stat_obj)
@@ -103,7 +103,7 @@ def scan_folder(args):
 
     csvFile = open(args.output, 'a', newline='')
     writer = csv.DictWriter(csvFile, fieldnames=fieldnames)
-    if not args.append:
+    if args.append is False:
         writer.writeheader()
     walktree(args.folder, add_csv_row(writer.writerow))
     csvFile.close()
@@ -113,11 +113,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         description='Creates csv record of files in given folder.')
-    parser.add_argument("folder", help='Base folder to parse')
-    parser.add_argument("--append", action='store_true',
-                        help='Append to output file', default=False)
+    parser.add_argument("folder", help='Base folder')
     parser.add_argument(
         "-o", "--output", help="output filename", default="Files.csv")
+    parser.add_argument("-a", "--append", action='store_true',
+                        help='Append to output file', default=False)
 
     args = parser.parse_args()
 
