@@ -8,9 +8,9 @@ import argparse
 
 fieldnames = [
     # CUSTOM
-    "File_Name", "Type", "Full_Path", 
+    "File_Name", "Type", "Full_Path",
     "Date_Modified", "Date_Created", "Date_Accessed",
-    "DateTime_Modified", "DateTime_Created", "DateTime_Accessed",  
+    "DateTime_Modified", "DateTime_Created", "DateTime_Accessed",
     "Size",
     # ATTRIBUTES
     "st_size", "st_mode", "st_ino", "st_dev", "st_nlink",
@@ -130,8 +130,7 @@ def scan_folder(append=False, folder=".", output="Files.csv"):
     csvFile.close()
 
 
-if __name__ == '__main__':
-
+def parse_arguments():
     parser = argparse.ArgumentParser(
         description='Creates csv record of files in given folder.')
     parser.add_argument("folder", help='Base folder')
@@ -139,7 +138,11 @@ if __name__ == '__main__':
         "-o", "--output", help="output filename", default="Files.csv")
     parser.add_argument("-a", "--append", action='store_true',
                         help='Append to output file', default=False)
-
     args = parser.parse_args()
+    return args
 
+
+if __name__ == '__main__':
+
+    args = parse_arguments()
     scan_folder(append=args.append, folder=args.folder, output=args.output)
