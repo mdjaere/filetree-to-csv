@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import stat
@@ -111,7 +112,7 @@ def scan_folder(append=False, folders=["."], output="Files.csv"):
         if os.path.exists(output):
             os.remove(output)
 
-    csvFile = open(output, 'a', newline='')
+    csvFile = open(output, 'a')
     writer = csv.DictWriter(csvFile,  restval="", delimiter=',',
                             extrasaction='ignore', fieldnames=fieldnames)
     if append is False:
