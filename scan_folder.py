@@ -52,22 +52,10 @@ def stat_to_dictionary(stat_obj):
     return result
 
 
-def convert_time(timestamp):
+def h_datetime(timestamp):
     return datetime.utcfromtimestamp(timestamp).strftime(
         '%Y-%m-%d|%H:%M:%S'
     ).split("|")
-
-
-def get_human_mtime(stat_obj):
-    return convert_time(stat_obj.st_mtime)
-
-
-def get_human_atime(stat_obj):
-    return convert_time(stat_obj.st_atime)
-
-
-def get_human_ctime(stat_obj):
-    return convert_time(stat_obj.st_ctime)
 
 
 def get_human_size(stat_obj):
@@ -83,8 +71,7 @@ def get_human_size(stat_obj):
     return result
 
 
-def get_type(stat_obj):
-    mode = stat_obj.st_mode
+def get_type(mode):
     if stat.S_ISREG(mode):
         return "file"
     if stat.S_ISDIR(mode):
@@ -97,14 +84,17 @@ def get_stat_dict(file_path, stat_obj):
     stat_dict = stat_to_dictionary(stat_obj)
     stat_dict["File_Name"] = os.path.basename(file_path)
     stat_dict["Full_Path"] = os.path.abspath(file_path)
-    stat_dict["Date_Modified"] = get_human_mtime(stat_obj)[0]
-    stat_dict["Date_Accessed"] = get_human_atime(stat_obj)[0]
-    stat_dict["Date_Created"] = get_human_ctime(stat_obj)[0]
-    stat_dict["DateTime_Modified"] = (" ").join(get_human_mtime(stat_obj)[0:2])
-    stat_dict["DateTime_Accessed"] = (" ").join(get_human_atime(stat_obj)[0:2])
-    stat_dict["DateTime_Created"] = (" ").join(get_human_ctime(stat_obj)[0:2])
+    stat_dict["Date_Modified"] = h_datetime(stat_obj.st_mtime)[0]
+    stat_dict["Date_Accessed"] = h_datetime(stat_obj.st_atime)[0]
+    stat_dict["Date_Created"] = h_datetime(stat_obj.st_ctime)[0]
+    stat_dict["DateTime_Modified"] = (" ").join(
+        h_datetime(stat_obj.st_mtime)[0:2])
+    stat_dict["DateTime_Accessed"] = (" ").join(
+        h_datetime(stat_obj.st_atime)[0:2])
+    stat_dict["DateTime_Created"] = (" ").join(
+        h_datetime(stat_obj.st_ctime)[0:2])
     stat_dict["Size"] = get_human_size(stat_obj)
-    stat_dict["Type"] = get_type(stat_obj)
+    stat_dict["Type"] = get_type(stat_obj.st_mode)
     return stat_dict
 
 
@@ -116,7 +106,7 @@ def process_file_metadata_with(effect):
     return process_file_metadata
 
 
-def scan_folder(append=False, folder=".", output="Files.csv"):
+def scan_folder(append=False, folders=["."], output="Files.csv"):
     if append is False:
         if os.path.exists(output):
             os.remove(output)
@@ -125,15 +115,16 @@ def scan_folder(append=False, folder=".", output="Files.csv"):
     writer = csv.DictWriter(csvFile,  restval="", delimiter=',',
                             extrasaction='ignore', fieldnames=fieldnames)
     if append is False:
-        writer.writeheader()
-    walktree(folder, process_file_metadata_with(writer.writerow))
+        writer.writeheader()      
+    for folder in folders:
+        walktree(folder, process_file_metadata_with(writer.writerow))
     csvFile.close()
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description='Creates csv record of files in given folder.')
-    parser.add_argument("folder", help='Base folder')
+        description='Creates csv record of files in one or more folders.')
+    parser.add_argument("folders", nargs='+', help='Base folder')
     parser.add_argument(
         "-o", "--output", help="output filename", default="Files.csv")
     parser.add_argument("-a", "--append", action='store_true',
@@ -145,4 +136,4 @@ def parse_arguments():
 if __name__ == '__main__':
 
     args = parse_arguments()
-    scan_folder(append=args.append, folder=args.folder, output=args.output)
+    scan_folder(append=args.append, folders=args.folders, output=args.output)
